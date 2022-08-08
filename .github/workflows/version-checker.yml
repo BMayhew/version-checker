@@ -60,7 +60,7 @@ jobs:
         uses: martijnhols/actions-cache/restore@v3
         with:
           path: ~/version.txt
-          key: json-${{ hashFiles('version.txt') }}
+          key: txt-${{ hashFiles('version.txt') }}
           restore-keys: restore-version.txt
 
       - name: Notify if version.txt has changed
