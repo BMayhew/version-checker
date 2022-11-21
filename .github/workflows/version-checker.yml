@@ -7,73 +7,30 @@ on:
 name: Version Checker
 
 jobs:
-  ## Commenting out the more complex version of the version checker.
-  # check-playwright:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Fetch Playwright Data
-  #       run: curl "https://api.github.com/repos/microsoft/playwright/releases" -o data.json
-  #     - name: Parse data and save data.json
-  #       id: parse_data
-  #       run: echo '::set-output name=someField::'$(jq '.[0].name' -r data.json)
-
-  #     # Compare the response to the previous run, using a hash of the response as the cache key
-  #     - name: Fetch Cache
-  #       id: cache
-  #       uses: martijnhols/actions-cache/restore@v3
-  #       with:
-  #         path: ~/data.json
-  #         key: json-${{ hashFiles('data.json') }}
-  #         restore-keys: restore-data.json
-
-  #     - name: Notify if data.json has changed
-  #       if: steps.cache.outputs.cache-hit != 'true'
-  #       uses: 8398a7/action-slack@v3
-  #       with:
-  #         text: 'A new version of Playwright has been released! https://github.com/microsoft/playwright/releases/tag/${{ steps.parse_data.outputs.someField }}'
-  #         status: ${{ job.status }}
-  #         fields: workflow
-  #       env:
-  #         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-  #     - name: Save data.json to cache if changed
-  #       if: steps.cache.outputs.cache-hit != 'true'
-  #       uses: martijnhols/actions-cache/save@v3
-  #       with:
-  #         path: ~/data.json
-  #         key: json-${{ hashFiles('data.json') }}
-
   simple-check-playwright:
     runs-on: ubuntu-latest
     steps:
       - name: Simplify Fetch Data
         run: curl -s GET https://api.github.com/repos/microsoft/playwright/tags\?per_page\=1 | jq -r '.[].name' > version.txt
+    
       - name: Save Version as Variable
         id: version_variable
-        run: echo '::set-output name=version::'$(cat version.txt)
-
-      # Compare the response to the previous run, using a hash of the response as the cache key
-      - name: Fetch Cache
-        id: cache
-        uses: martijnhols/actions-cache/restore@v3
+        run: echo "version=$(cat version.txt)" >> $GITHUB_ENV
+     
+      - name: Cache playwright version number
+        uses: actions/cache@v3
+        id: playwright-version
         with:
-          path: ~/version.txt
-          key: txt-${{ hashFiles('version.txt') }}
-          restore-keys: restore-version.txt
+          path: |
+            ./version.txt
+          key: playwright-${{ env.version }}
 
       - name: Notify if version.txt has changed
-        if: steps.cache.outputs.cache-hit != 'true'
+        if: steps.playwright-version.outputs.cache-hit != 'true'
         uses: 8398a7/action-slack@v3
         with:
-          text: 'A new version of Playwright has been released! https://github.com/microsoft/playwright/releases/tag/${{ steps.version_variable.outputs.version }}'
+          text: 'A new version of Playwright has been released! https://github.com/microsoft/playwright/releases/tag/${{ steps.playwright-version.outputs.version }}'
           status: ${{ job.status }}
           fields: workflow
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Save version.txt to cache if changed
-        if: steps.cache.outputs.cache-hit != 'true'
-        uses: martijnhols/actions-cache/save@v3
-        with:
-          path: ~/version.txt
-          key: txt-${{ hashFiles('version.txt') }}
