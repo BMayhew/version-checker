@@ -15,7 +15,7 @@ jobs:
     
       - name: Save Version as Variable
         id: version_variable
-        run: echo "version=$(cat version.txt)" >> $GITHUB_ENV
+        run: echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
      
       - name: Cache playwright version number
         uses: actions/cache@v3
@@ -23,13 +23,13 @@ jobs:
         with:
           path: |
             ./version.txt
-          key: playwright-${{ env.version }}
+          key: playwright-${{ env.VERSION }}
 
       - name: Notify if version.txt has changed
         if: steps.playwright-version.outputs.cache-hit != 'true'
         uses: 8398a7/action-slack@v3
         with:
-          text: 'A new version of Playwright has been released! https://github.com/microsoft/playwright/releases/tag/${{ steps.playwright-version.outputs.version }}'
+          text: 'A new version of Playwright has been released! https://github.com/microsoft/playwright/releases/tag/${{ env.VERSION }}'
           status: ${{ job.status }}
           fields: workflow
         env:
