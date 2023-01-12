@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Simplify Fetch Data
-        run: curl -s GET https://api.github.com/repos/microsoft/playwright/tags\?per_page\=1 | jq -r '.[].name' > version.txt
-    
+        run: curl -s GET https://api.github.com/repos/microsoft/playwright/tags?per_page=1 | jq -r '.[].name' > version.txt
+
       - name: Save Version as Variable
         id: version_variable
         run: echo "VERSION=$(cat version.txt)" >> $GITHUB_ENV
